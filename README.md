@@ -5,6 +5,9 @@
 ## 项目简介
 LoveFlipTimer 是一个浪漫主题的恋爱计时网页项目，使用 HTML、CSS 和 JavaScript 构建。项目集成了 [Fliptimer](https://github.com/bei9/fliptimer) 库，实现精美的翻页式倒计时效果，并参考了 [Responsive Image Gallery](https://github.com/ionutcora-webdevelopment/responsive-image-gallery) 设计图片展示区域。
 
+## 示例地址
+项目示例已部署至：[https://www.j142.vip/love/](https://www.j142.vip/love/)
+
 ## 功能特色
 - ❤️ 翻页式计时器，记录恋爱时光
 - 🖼️ 图片墙，展示美好回忆
@@ -42,9 +45,6 @@ const startTime = '2022-02-14T00:00:00';
    git clone https://github.com/yourusername/LoveFlipTimer.git
    ```
 2. 使用浏览器直接打开 `index.html`。
-
-## 示例地址
-项目示例已部署至：[https://www.j142.vip/love/](https://www.j142.vip/love/)
 
 ## 参与贡献
 欢迎提交问题和 PR，一起完善此项目 💖
