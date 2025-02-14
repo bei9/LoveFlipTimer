@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Love U</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="fliptimer/fliptimer.css">
+    <script type="text/javascript" src="fliptimer/fliptimer.js"></script>
+</head>
+
+<body>
+    <div id="loading-screen">
+        <canvas id="heartCanvas"></canvas>
+
+    </div>
+
+
+    <div class="overlay-div">
+        <div class="overlay-text">我们相恋了</div>
+        <div id="fliptimer" class="fliptimer"></div>
+    </div>
+
+    <section>
+        <div class="images-gallery" id="images-gallery">
+            <div class="column">
+
+            </div>
+            <div class="column">
+
+            </div>
+            <div class="column">
+
+            </div>
+        </div>
+    </section>
+    <script src="./urls.js"></script>
+
+    <script>
+        var startTime = new Date("2024-08-30T22:00:00").getTime() / 1000 - 86400; // 目标时间
+        let body = document.body;
+        var flipdown = new FlipTimer(startTime).start()
+        body.querySelector('#fliptimer').classList.toggle('fliptimer__theme-light');
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const gallery = document.getElementById("images-gallery");
+            const columns = document.querySelectorAll(".column");
+            const loadingScreen = document.getElementById("loading-screen");
+
+            let scrollSpeed = 0.7; // 控制滚动速度
+            let scrollPosition = 0; // 记录当前滚动位置
+            let isLoaded = false; // **是否加载完成**
+
+            let totalImages = columns.length * 8; // 计算所有需要加载的图片数量
+            let loadedImages = 0; // 记录已加载的图片数量
+
+            // 获取 Canvas
+            const canvas = document.getElementById("heartCanvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = 210;
+            canvas.height = 210;
+
+            const centerX = canvas.width / 2;  // 重新计算中心 X
+            const centerY = canvas.height / 2; // 重新计算中心 Y
+
+
+            const particles = [];
+            const particleCount = 700; // 粒子数量
+            let progressPercent = 0; // 进度条（0~100）
+
+            // **爱心路径公式**
+            function heartFunction(t) {
+                return {
+                    x: centerX + 60 * Math.sin(t) ** 3,
+                    y: centerY - 50 * Math.cos(t) + 20 * Math.cos(2 * t) + 10 * Math.cos(3 * t) + 5 * Math.cos(4 * t)
+                };
+            }
+
+            // **生成粒子**
+            function createParticles() {
+                for (let i = 0; i < particleCount; i++) {
+                    let t = (Math.PI * 2 * i) / particleCount; // 均匀分布
+                    let pos = heartFunction(t);
+                    particles.push({
+                        x: pos.x + (Math.random() - 0.5) * 11, // 增加随机偏移
+                        y: pos.y + (Math.random() - 0.5) * 11,
+                        alpha: 0 // 透明度，随着进度渐变
+                    });
+                }
+            }
+
+            // **绘制粒子**
+            function drawParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach((p, index) => {
+                    if (index / particleCount < progressPercent / 100) {
+                        p.alpha = Math.min(p.alpha + 0.02, 1); // 透明度逐渐增加
+                    }
+                    ctx.fillStyle = `rgba(255, 20, 147, ${p.alpha})`; // 更鲜艳的粉色
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); // 粒子半径增大到 4px
+                    ctx.fill();
+                });
+            }
+
+
+            // **工具函数：随机获取图片**
+            function getRandomImage() {
+                const randomIndex = Math.floor(Math.random() * photoUrls.length);
+                return photoUrls[randomIndex];
+            }
+
+            // **更新加载进度**
+            function updateLoadingProgress() {
+                loadedImages++;
+                progressPercent = Math.round((loadedImages / totalImages) * 100);
+
+                drawParticles(); // 重新绘制粒子
+
+                if (loadedImages === totalImages) {
+                    setTimeout(() => {
+                        loadingScreen.classList.add("hidden"); // 使用 CSS 过渡隐藏
+                        isLoaded = true; // **加载完成，允许滚动**
+                        requestAnimationFrame(autoScroll); // **开始滚动**
+                    }, 500);
+                }
+            }
+
+            // **1. 初始化，每个 column 先填充 8 张图片**
+            function initializeGallery() {
+                columns.forEach((column) => {
+                    for (let i = 0; i < 8; i++) {
+                        const newDiv = document.createElement("div");
+                        const newImg = document.createElement("img");
+                        newImg.src = getRandomImage() + '?x-oss-process=image/resize,p_20';
+                        newImg.alt = "img";
+
+
+                        // **监听图片加载完成**
+                        newImg.onload = updateLoadingProgress;
+                        newImg.onerror = updateLoadingProgress; // 即使加载失败，也算作完成
+
+                        newDiv.appendChild(newImg);
+                        column.appendChild(newDiv);
+                    }
+                });
+            }
+
+            // **2. 检查每个 column 是否触底**
+            function checkColumns() {
+                columns.forEach((column) => {
+                    const rect = column.getBoundingClientRect();
+                    const windowHeight = window.innerHeight;
+
+                    if (rect.bottom < windowHeight + windowHeight / 2) {
+                        addNewImageToColumn(column);
+                    }
+                });
+            }
+
+            // **3. 只给触底的 column 添加图片**
+            function addNewImageToColumn(column) {
+                const newDiv = document.createElement("div");
+                const newImg = document.createElement("img");
+                newImg.src = getRandomImage() + '?x-oss-process=image/resize,p_20';
+                newImg.alt = "img";
+                newDiv.appendChild(newImg);
+                column.appendChild(newDiv);
+            }
+
+            // **4. 自动滚动**
+            function autoScroll() {
+                if (!isLoaded) return; // **未加载完成前不滚动**
+
+                checkColumns(); // 每帧检查是否有列触底
+
+                scrollPosition += scrollSpeed;
+                gallery.scrollTop = scrollPosition;
+
+                requestAnimationFrame(autoScroll);
+            }
+
+            createParticles(); // 创建粒子
+            initializeGallery(); // 开始加载图片
+            drawParticles(); // 先绘制空白爱心
+
+            requestAnimationFrame(autoScroll);
+
+        });
+
+
+    </script>
+</body>
+
+</html>

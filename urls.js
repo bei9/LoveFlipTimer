@@ -1,0 +1,5 @@
+const photoUrls = [
+'https://...',
+'https://...',
+'...'
+]
